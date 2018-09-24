@@ -24,13 +24,26 @@ export type Drive<BaseConf> = {
      * @param block_no 区块号
      * @param buf 数据
      */
-    write: (block_no: number, data: Buffer) => Promise<boolean>; 
+	write: (block_no: number, data: Buffer) => Promise<boolean>; 
+	
+	/**
+	 * 批量写入 
+	 * @param blocks 区块号数组
+	 * @param data 数据, Buffer
+	 */
+	writes: (blocks: number[], data: Buffer) => Promise<boolean>; 
 
     /**
      * 单个区块读入 
      * @param block_no 区块号
      */
-    read: (block_no: number) => Promise<Buffer | null>; 
+	read: (block_no: number) => Promise<Buffer | null>; 
+	
+	/**
+	 * 批量读出 
+	 * @param blocks 区块号数组
+	 */
+	reads: (blocks: number[]) => Promise<Buffer | null>; 
 
     /**
      * 挂载, 挂载的时候无需指定 STORE_TYPE
@@ -86,7 +99,7 @@ export interface FileNode extends BaseInfo {
     /**
      * 块索引 
      */
-    blocks: string[]; 
+    blocks: number[]; 
 
     /**
      * 文件后缀 
@@ -115,14 +128,17 @@ export type FileSystem<BaseConf> = {
     alloc: (size: number) => number[]; 
     free: (blocks: number[]) => void; 
 
-    mount: (conf: BaseConf & DiskConf) => Promise<boolean>; 
+	mount: (conf?: BaseConf & DiskConf) => Promise<boolean>; 
+	format: () => Promise<any>; 
 
     touch: (path: string) => Promise<FileNode | null>; 
     mkdir: (path: string) => Promise<DirNode | null>; 
     rm: (path: string) => Promise<boolean>; 
 
     writeFile: (path: string, data: Buffer) => Promise<boolean>; 
-    readFile: (path: string) => Promise<Buffer | null>;  
+	readFile: (path: string) => Promise<Buffer | null>;  
+	
+	save: (retry_times: number) => Promise<boolean>; 
 
     drive: Drive<BaseConf>; 
 } & FileSystemInfo;

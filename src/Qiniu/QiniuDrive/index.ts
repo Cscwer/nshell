@@ -93,10 +93,24 @@ export default class QiniuDrive implements Drive<MountConf> {
                 }
             }); 
         })
-    }
+	}
+	
+	writes(blocks: number[], data: Buffer) {
+		const tasks = blocks.map((block_no, i) => {
+			const start = i * this.BLOCK_SIZE; 
+			const end = (i + 1) * this.BLOCK_SIZE; 
+			const part = data.slice(start, end); 
+
+			return this.write(block_no, part); 
+		}); 
+
+		return Promise.all(tasks).then(results => {
+			return results.every(r => r); 
+		}); 
+	}
 
     read(block_no: number): Promise<Buffer | null> {
-        const url = this.downloadAuth(block_no); 
+		const url = this.downloadAuth(block_no); 
     
         return rp.get(url, {
             encoding: null, 
@@ -104,5 +118,18 @@ export default class QiniuDrive implements Drive<MountConf> {
         }).catch(err => {
             return null; 
         });
-    }
+	}
+	
+	reads(blocks: number[]) {
+		const tasks = blocks.map(block_no => {
+			return this.read(block_no);
+		}); 
+
+		return Promise.all(tasks).then(results => {
+			if (results.some(e => !e)) return null; 
+
+			// @ts-ignore
+			return Buffer.concat(results, blocks.length * this.BLOCK_SIZE);
+		}); 
+	}
 }

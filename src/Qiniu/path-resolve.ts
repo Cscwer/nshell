@@ -1,21 +1,32 @@
 import { Node } from "../Node"; 
 
-export function pathResolve(root: Node | null, paths: string[]): Node | null {
-    console.log(root, paths); 
+function nameEqual(n: Node | null, fullname: string) {
+	if (!n) return false; 
 
-    const [first, ...rest] = paths; 
-    console.log(first, rest); 
-    console.log('_')
-
-    
-    if (!root) {
-        return null;
-    } else {
-        
-    }
+	if (n.isDir) {
+		return n.name === fullname; 
+	} else {
+		return (n.name + '.' + n.ext) === fullname; 
+	}
 }
 
-export default function(root: Node, path: string | string[]) {
+export function pathResolve(root: Node, paths: string[]): Node | null {
+    const [first, ...rest] = paths; 
+	
+	if (rest.length) {
+		if (root.isDir) {
+			const target = root.files.find(n => nameEqual(n, rest[0])); 
+
+			return target ? pathResolve(target, rest) : null; 
+		} else {
+			return null; 
+		}
+	} else {
+		return nameEqual(root, first) ? root : null; 
+	}
+}
+
+export default function resolve(root: Node, path: string | string[]) {
     if (typeof path === 'string') {
         return pathResolve(root, path.split('/')); 
     } else {
