@@ -1,5 +1,5 @@
 import DrivePool from "./DrivePool"; 
-import QiniuDrive from "../QiniuDrive"; 
+import QiniuDrive from "../Qiniu/QiniuDrive"; 
 
 const dp = new DrivePool(); 
 

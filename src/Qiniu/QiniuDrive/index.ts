@@ -1,4 +1,4 @@
-import { Drive, DiskConf, RemoveKey } from "../Node"; 
+import { Drive, DiskConf } from "../../Node"; 
 import * as qiniu from "qiniu"; 
 import * as rp from "request-promise-native"; 
 import conf from "./config"; 
@@ -9,9 +9,7 @@ const uploadConf = new qiniu.conf.Config({ zone: qiniu.zone.Zone_z2 });
 const formUploader = new qiniu.form_up.FormUploader(uploadConf);
 const putExtra = new qiniu.form_up.PutExtra();
 
-
 export type MountConf = DiskConf & QiniuConfig; 
-
 export default class QiniuDrive implements Drive<MountConf> {
     STORE_TYPE = 'qiniu'; 
     AK: string; 

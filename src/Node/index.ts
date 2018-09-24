@@ -49,14 +49,9 @@ export interface BaseInfo {
     name: string; 
 
     /**
-     * 文件后缀 
-     */
-    ext: string | null;
-
-    /**
      * 文件存储类型
      */
-    store_type: string
+    store_type?: string
 }
 
 /**
@@ -92,10 +87,43 @@ export interface FileNode extends BaseInfo {
      * 块索引 
      */
     blocks: string[]; 
+
+    /**
+     * 文件后缀 
+     */
+    ext: string | null;
 }
 
 /**
  * 节点
  */
 export type Node = DirNode | FileNode; 
+
+/**
+ * FileSystem
+ */
+export type FileSystemInfo = {
+    root: Node, 
+    fat: number[]
+} & DiskConf;
+
+/**
+ * 文件系统
+ */
+export type FileSystem<BaseConf> = {
+    find: (path: string) => Node | null; 
+    alloc: (size: number) => number[]; 
+    free: (blocks: number[]) => void; 
+
+    mount: (conf: BaseConf & DiskConf) => Promise<boolean>; 
+
+    touch: (path: string) => Promise<FileNode | null>; 
+    mkdir: (path: string) => Promise<DirNode | null>; 
+    rm: (path: string) => Promise<boolean>; 
+
+    writeFile: (path: string, data: Buffer) => Promise<boolean>; 
+    readFile: (path: string) => Promise<Buffer | null>;  
+
+    drive: Drive<BaseConf>; 
+} & FileSystemInfo;
 

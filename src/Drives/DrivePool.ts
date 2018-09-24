@@ -1,7 +1,8 @@
-import { Drive } from "../Node"
+import { Drive } from "../Node";
+import QiniuDrive from "../Qiniu/QiniuDrive"; 
 
-export type BaseAnyConfig = {
-    [key: string]: any
+export type BaseAnyConfig = any & {
+    "qiniu": QiniuDrive
 }
 
 export default class DrivePool {
@@ -19,7 +20,7 @@ export default class DrivePool {
         return this; 
     }
 
-    find(type: string) {
-        return this.pools.find(d => d.STORE_TYPE === type); 
+    find(type: string): Drive<BaseAnyConfig> | null {
+        return this.pools.find(e => e.STORE_TYPE === type) || null; 
     }
 }
