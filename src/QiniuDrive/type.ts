@@ -21,4 +21,11 @@ export type RespInfo<T> = {
     remotePort: number
 }
 
+export interface QiniuConfig {
+    AK: string; 
+    SK: string; 
+    DOMAIN: string; 
+    BUCKET: string; 
+}
+
 export type DefaultRespInfo = RespInfo<RespBody>
