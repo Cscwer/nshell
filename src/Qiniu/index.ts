@@ -4,7 +4,7 @@ import { QiniuConfig } from "./QiniuDrive/type";
 import pathResolve from "./path-resolve";
 import QiniuDrive from "./QiniuDrive";
 import * as Path from "path"; 
-import * as fs from "fs"; 
+// import * as fs from "fs"; 
 
 // const qnd = new QiniuDrive(); 
 // qnd.mount({
@@ -99,6 +99,8 @@ export class Qiniu implements FileSystem<MountConf> {
 		if (!success) {
 			console.log('致命错误；格式化失败'); 
 			process.exit(-1); 
+		} else {
+			console.log('格式化成功'); 
 		}
 	}
 
@@ -121,11 +123,13 @@ export class Qiniu implements FileSystem<MountConf> {
 				this.root = temp.root; 
 				return true; 
 			} catch (err) {
+				console.log('错误的零号区块, 需格式化'); 
 				// 需要格式化 
 				await this.format(); 
 				return this.mount(); 
 			}
 		} else {
+			console.log('读取不到零号区块, 需格式化'); 
 			// 需要格式化 
 			await this.format(); 
 			return this.mount(); 
@@ -245,12 +249,12 @@ const qn = new Qiniu();
 	}); 
 	
 	// 格式化 
-	await qn.format(); 
+	// await qn.format(); 
 
 	qn.info(); 
 
-	const d = await qn.readFile('/hello.txt')
-	console.log(d.toString()); 
+	// const d = await qn.readFile('/hello.txt')
+	// console.log(d && d.toString()); 
 
 	// // 读取本地图片 
 	// const f = `C:\\Users\\eczn\\Desktop\\wallpic\\2ae0c128484ae3f31d206d514e53b2b0.png`; 

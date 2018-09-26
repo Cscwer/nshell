@@ -2,12 +2,32 @@ import { Drive, DiskConf } from "../../Node";
 import * as qiniu from "qiniu"; 
 import * as rp from "request-promise-native"; 
 import conf from "./config"; 
+import * as Url from "url"; 
 import { RespBody, RespInfo, QiniuConfig } from "./type"; 
+
+
+if (process.env.HTTP_PROXY) {
+    const tunnel = require('tunnel-agent'); 
+    const p = Url.parse(process.env.HTTP_PROXY); 
+    const PROXY_INFO = [`web-proxy.tencent.com`, 8080]; 
+
+    // @ts-ignore 七牛代理配置
+    qiniu.conf.RPC_HTTP_AGENT = tunnel.httpOverHttp({
+        proxy: {
+            host: p.host,
+            port: p.port || 80
+        }
+    });
+
+    // Request 代理配置
+    rp.defaults({ proxy: process.env.HTTP_PROXY }); 
+}
 
 // 七牛表单
 const uploadConf = new qiniu.conf.Config({ zone: qiniu.zone.Zone_z2 });
 const formUploader = new qiniu.form_up.FormUploader(uploadConf);
 const putExtra = new qiniu.form_up.PutExtra();
+
 
 export type MountConf = DiskConf & QiniuConfig; 
 export default class QiniuDrive implements Drive<MountConf> {
@@ -78,17 +98,23 @@ export default class QiniuDrive implements Drive<MountConf> {
     }
 
     write(block_no: number, data: Buffer): Promise<boolean> {
+        console.log('Write', block_no, data); 
+
         const { token, key } = this.uploadAuth(block_no); 
         const fill = Buffer.alloc(conf.BLOCK_SIZE - data.length);
         const buf = Buffer.concat([data, fill]);     
 
         return new Promise((resolve, reject) => {
             formUploader.put(token, key, buf, putExtra, (respErr, respBody: RespBody, respInfo: RespInfo<RespBody>) => {
-                if (respErr) resolve(false); 
+                if (respErr) {
+                    console.log(respErr); 
+                    resolve(false); 
+                }
 
                 if (respInfo.statusCode === 200) {
                     resolve(true); 
                 } else {
+                    
                     resolve(false); 
                 }
             }); 
@@ -110,6 +136,8 @@ export default class QiniuDrive implements Drive<MountConf> {
 	}
 
     read(block_no: number): Promise<Buffer | null> {
+        console.log('Read', block_no); 
+
 		const url = this.downloadAuth(block_no); 
     
         return rp.get(url, {
