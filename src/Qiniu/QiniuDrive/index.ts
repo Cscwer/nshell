@@ -9,7 +9,6 @@ import { RespBody, RespInfo, QiniuConfig } from "./type";
 if (process.env.HTTP_PROXY) {
     const tunnel = require('tunnel-agent'); 
     const p = Url.parse(process.env.HTTP_PROXY); 
-    const PROXY_INFO = [`web-proxy.tencent.com`, 8080]; 
 
     // @ts-ignore 七牛代理配置
     qiniu.conf.RPC_HTTP_AGENT = tunnel.httpOverHttp({
