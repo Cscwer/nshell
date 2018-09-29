@@ -4,7 +4,9 @@ import { QiniuConfig } from "./QiniuDrive/type";
 import pathResolve from "./path-resolve";
 import QiniuDrive from "./QiniuDrive";
 import * as Path from "path"; 
-// import * as fs from "fs"; 
+import { Writable, Readable } from "stream"; 
+
+import * as fs from "fs"; 
 
 // const qnd = new QiniuDrive(); 
 // qnd.mount({
@@ -232,6 +234,78 @@ export class Qiniu implements FileSystem<MountConf> {
 			return null; 
 		}
 	}
+
+	createReadStream(path: string): Readable | null {
+		const node = pathResolve(this.root, path); 		
+		let stream: Readable | null; 
+
+		if (node) {
+			if (node.isDir) {
+				stream = null; 
+				throw 'the path is directory'; 
+			} else {
+				stream = this._createReadStream(node); 
+			}
+		} else {
+			stream = null; 
+			throw 'invalid path when creating read stream of nshell'; 
+		}
+
+		return stream; 
+	}
+	
+	_createReadStream(node: FileNode) {
+		const { BLOCK_SIZE } = this; 
+		const { size, blocks } = node; 
+		let start = 0; 
+
+		const stream: Readable = new Readable({
+			read: (read_size: number) => {
+				const start_nth = Math.floor(size / BLOCK_SIZE); 
+				const end_length = Math.ceil(read_size / BLOCK_SIZE); 
+				const target_blocks = blocks.slice(start_nth, start_nth + end_length); 
+
+				this.drive.reads(target_blocks).then(buf => {
+					
+				});
+				const offset = size % BLOCK_SIZE; 
+
+
+				// this.drive.read(blocks[nth]).then(buf => {
+				// 	if (buf) {
+				// 		// stream.push(buf.slice(offset)); 
+
+				// 	} else {
+				// 		stream.emit('error', '读取失败'); 
+				// 	}
+				// }); 
+			}
+		}); 
+
+		return stream; 
+	}
+
+	createWriteStream(path: string) {
+		let buffers: Buffer[] = [];
+		const stream = new Writable(); 
+
+        stream.on('error', function(err) {
+			console.log('Write Stream Error', err); 
+		});
+
+        stream.on('data', data => {
+			console.log(data); 
+			buffers.push(data)
+		}); 
+        stream.on('end', () => {
+			const all = Buffer.concat(buffers); 
+			this.writeFile(path, all).then(ok => {
+				console.log('okok')
+			})
+		}); 
+
+		return stream; 
+	}
 }
 
 
@@ -253,6 +327,14 @@ const qn = new Qiniu();
 
 	qn.info(); 
 
+	const local = fs.createReadStream('./test.txt'); 
+	// const net = qn.createReadStream('/hello.txt'); 
+	const net = qn.createWriteStream('/test.txt'); 
+
+	local.pipe(net); 
+
+
+	
 	// const d = await qn.readFile('/hello.txt')
 	// console.log(d && d.toString()); 
 

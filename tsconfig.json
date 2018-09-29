@@ -29,6 +29,7 @@
     "core/",
     "system/", 
     "@view-build/",
-    "server/@generator.js"
+    "server/@generator.js",
+    "test.js"
   ]
 }

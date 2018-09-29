@@ -24,3 +24,6 @@ yarn-error.log*
 package-lock.json
 
 test.jpg
+
+test.js
+test.txt
