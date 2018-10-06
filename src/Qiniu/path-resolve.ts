@@ -28,6 +28,8 @@ export function pathResolve(root: Node, paths: string[]): Node | null {
 
 export default function resolve(root: Node, path: string | string[]) {
     if (typeof path === 'string') {
+		if (path === '/') path = ''; 
+
         return pathResolve(root, path.split('/')); 
     } else {
         return pathResolve(root, path); 
