@@ -37,6 +37,15 @@ export class Qiniu implements FileSystem<MountConf> {
 			console.log("    ".repeat(deep), root.name + '.' + root.ext, '   # Size:', root.size); 
 		}
 	}
+
+	ls(path: string = '/') {
+		const target = this.find(path); 
+		if (target) {
+			this.info(target); 
+		} else {
+			console.log(`${ path } not found`); 
+		}
+	}
     
     find(path: string): Node | null {
         return pathResolve(this.root, path); 
@@ -93,10 +102,15 @@ export class Qiniu implements FileSystem<MountConf> {
 		}
 	}
 
-    async mount(conf?: MountConf): Promise<boolean> {
+    async mount(conf: MountConf | null, times = 0): Promise<boolean> {
 		if (conf) {
 			this.drive = new QiniuDrive(); 
 			await this.drive.mount(conf); 
+		}
+
+		if (times > 3) {
+			console.log('请检查网络或系统设置'); 
+			process.exit(-1); 
 		}
 
 		const theBlock = await this.drive.read(0); 
@@ -110,18 +124,22 @@ export class Qiniu implements FileSystem<MountConf> {
 				
 				this.fat = temp.fat; 
 				this.root = temp.root; 
+
 				return true; 
 			} catch (err) {
 				console.log('错误的零号区块, 需格式化'); 
+				process.exit(-1); 
 				// 需要格式化 
-				await this.format(); 
-				return this.mount(); 
+				// await this.format(); 
+				// return this.mount(); 
+				return false; 
 			}
 		} else {
-			console.log('读取不到零号区块, 需格式化'); 
-			// 需要格式化 
-			await this.format(); 
-			return this.mount(); 
+			console.log('读取不到零号区块, 请检查网络或系统设置'); 
+			process.exit(-1); 
+			// await this.format(); 
+			// return this.mount(); 
+			return this.mount(null, times + 1); 
 		}
 	}
 

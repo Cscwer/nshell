@@ -1,6 +1,14 @@
+import * as readline from "readline"; 
 import { Qiniu } from "./Qiniu"; 
 
 const qn = new Qiniu(); 
+
+const rl = readline.createInterface({
+	input: process.stdin,
+	output: process.stdout,
+	prompt: 'nshell> '
+});
+
 
 (async () => {
 	// 挂载 
@@ -13,7 +21,22 @@ const qn = new Qiniu();
 		TOTAL: 100 * 1024 * 1024  //  50 MB
 	}); 
 
-	qn.info(); 
+	rl.prompt();
+
+	rl.on('line', async (line: string) => {
+		const [cmd, ...args] = line.split(' ').map(e => e.trim()); 
+
+		if (qn[cmd]) {
+			await qn[cmd](...args); 
+		} else {
+			console.log(`command '${ cmd }' not found.`); 
+		}
+		
+		rl.prompt();
+	}).on('close', () => {
+		console.log('再见!');
+		process.exit(0);
+	});
 
 	// const d = await qn.readFile('/hello.txt')
 	// console.log(d && d.toString()); 

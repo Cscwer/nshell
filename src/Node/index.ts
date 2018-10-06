@@ -128,7 +128,7 @@ export type FileSystem<BaseConf> = {
     alloc: (size: number) => number[]; 
     free: (blocks: number[]) => void; 
 
-	mount: (conf?: BaseConf & DiskConf) => Promise<boolean>; 
+	mount: (conf?: (BaseConf & DiskConf) | null) => Promise<boolean>; 
 	format: () => Promise<any>; 
 
     touch: (path: string) => Promise<FileNode | null>; 
