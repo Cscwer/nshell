@@ -1,4 +1,4 @@
-import { Drive, DiskConf } from "../../Node"; 
+import { Drive, DiskConf } from "../Drive"; 
 import * as qiniu from "qiniu"; 
 import * as rp from "request-promise-native"; 
 import conf from "./config"; 
@@ -29,12 +29,15 @@ const putExtra = new qiniu.form_up.PutExtra();
 
 
 export type MountConf = DiskConf & QiniuConfig; 
-export default class QiniuDrive implements Drive<MountConf> {
-    STORE_TYPE = 'qiniu'; 
+
+export default class QiniuDrive implements Drive {
+	// Qiniu Conf 
     AK: string; 
     SK: string; 
     DOMAIN: string; 
-    BUCKET: string; 
+	BUCKET: string; 
+	
+	// Disk Conf 
     BLOCK_SIZE: number; 
     TOTAL: number; 
 
