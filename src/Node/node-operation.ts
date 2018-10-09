@@ -10,27 +10,32 @@ function nameEqual(n: Node | null, fullname: string) {
 	}
 }
 
-function pathResolve(root: Node, paths: string[]): Node | null {
-    const [first, ...rest] = paths; 
-	
-	if (rest.length) {
-		if (root.isDir) {
-			const target = root.files.find(n => nameEqual(n, rest[0])); 
+function pathResolve(root: Node | null, paths: string[]): Node | null {
+	if (!root) return null; 
 
-			return target ? pathResolve(target, rest) : null; 
+	const [first, ...rest] = paths; 
+
+	if (first) {
+		if (root.isDir) {
+			const target = root.files.find(n => nameEqual(n, first)) || null; 
+
+			return pathResolve(target, rest); 
 		} else {
-			return null; 
+			return rest.length ? null : (
+				nameEqual(root, first) ? root : null
+			);
 		}
 	} else {
-		return nameEqual(root, first) ? root : null; 
+		return root; 
 	}
 }
 
 export function resolve(root: Node, path: string | string[]) {
-    if (typeof path === 'string') {
-		if (path === '/') path = ''; 
+	if (!path) return null; 
 
-        return pathResolve(root, path.split('/')); 
+    if (typeof path === 'string') {
+		const paths = path.split('/').filter(e => e); 
+        return pathResolve(root, paths); 
     } else {
         return pathResolve(root, path); 
     }
