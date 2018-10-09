@@ -5,7 +5,7 @@ import QiniuDrive from "./QiniuDrive";
 const rl = readline.createInterface({
 	input: process.stdin,
 	output: process.stdout,
-	prompt: 'nshell> '
+	prompt: 'nshell '
 });
 
 
@@ -24,18 +24,26 @@ qd.mount({
 	// 挂载 
 	const qn = new FileSystem(qd); 
 	await qn.mount(); 
-	
+
+	const cwd: string[] = []; 
+
+	const printPrompt = () => {
+		console.log('/' + cwd.join('/')); 
+		process.stdout.write('> ')
+	}
+
 	rl.prompt();
-	
+	printPrompt(); 
 
 	rl.on('line', async (line: string) => {
-
 		const [cmd, ...args] = line.split(' ').filter(e => !!e).map(e => e.trim()); 
 
 		if (qn[cmd]) {
 			try {
 				const result = await qn[cmd](...args); 
-				console.log(result); 
+				
+				if (result.isNode) qn.info(result); 
+				else console.log(result); 
 			} catch (err) {
 				console.log(`Error When Exec '${ line }'`); 
 				console.error(err); 
@@ -44,7 +52,9 @@ qd.mount({
 			console.log(`command '${ cmd }' not found.`); 
 		}
 		
+		process.stdout.write('\n'); 
 		rl.prompt();
+		printPrompt(); 
 	}).on('close', () => {
 		console.log('再见!');
 		process.exit(0);

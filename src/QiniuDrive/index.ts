@@ -156,8 +156,6 @@ export default class QiniuDrive implements Drive {
 		}); 
 
 		return Promise.all(tasks).then(results => {
-			if (results.some(e => !e)) return null; 
-
 			// @ts-ignore
 			return Buffer.concat(results, blocks.length * this.BLOCK_SIZE);
 		}); 

@@ -41,26 +41,37 @@ export function resolve(root: Node, path: string | string[]) {
     }
 }
 
+export function travel(root: Node, fn: (node: Node) => any) {
+	fn(root); 
+
+	root.isDir && root.files.forEach(n => travel(n, fn)); 
+}
+
+const Node_Proto = {
+	isNode: true
+}
+
 export function createFileNode(name: string, ext: string | null = null): FileNode {
 	const now = Date.now(); 
 
-	return {
+	return Object.setPrototypeOf({
 		create_at: now, update_at: now, 
 		name,  
 		ext,
 		isDir: false, 
 		size: 0, 
 		blocks: []
-	}
+	}, Node_Proto); 
 }
+
 
 export function createDirNode(name: string): DirNode {
 	const now = Date.now(); 
-	return {
+	return Object.setPrototypeOf({
 		create_at: now, update_at: now, 
 		name, 
 		isDir: true, 
 		files: []
-	}
+	}, Node_Proto); 
 }
 

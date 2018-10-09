@@ -42,8 +42,8 @@ export default class Fat implements DiskConf {
 	}
 	
 	realloc(pre_blocks: number[], total_size: number): number[] {
-		const pre_size = this.BLOCK_SIZE * pre_blocks.length; 
-		const increment = total_size - pre_size; 
+		const pre_max_size = this.BLOCK_SIZE * pre_blocks.length; 
+		const increment = total_size - pre_max_size; 
 		const inc_blocks = this.alloc(increment); 
 
 		return pre_blocks.concat(inc_blocks); 
