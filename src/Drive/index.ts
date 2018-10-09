@@ -1,3 +1,5 @@
+export * from "./DriveError"; 
+
 export type DiskConf = {
 	/**
 	 * 区块大小
@@ -29,13 +31,13 @@ export type Drive = {
 	 * 单个块读取
 	 * @param block_no 区块号
 	 */
-	read: (block_no: number) => Promise<Buffer | null>; 
+	read: (block_no: number) => Promise<Buffer>; 
 
 	/**
 	 * 多个块读取
 	 * @param blocks 区块号
 	 */
-	reads: (blocks: number[]) => Promise<Buffer | null>; 
+	reads: (blocks: number[]) => Promise<Buffer>; 
 
 	/**
 	 * 驱动挂载
