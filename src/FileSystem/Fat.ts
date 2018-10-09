@@ -19,11 +19,6 @@ export default class Fat implements DiskConf {
 		this.TOTAL = conf.TOTAL; 
 	}
 
-	toJSON() {
-		const str = this.records.join(''); 
-		return str;
-	}
-	
 	alloc(size: number) {
         const how_many_blocks = Math.ceil(size / this.BLOCK_SIZE); 
         const blocks: number[] = []; 
@@ -59,5 +54,10 @@ export default class Fat implements DiskConf {
 		});
 
 		return fat; 
+	}
+
+	toJSON() {
+		const str = this.records.join(''); 
+		return str;
 	}
 }

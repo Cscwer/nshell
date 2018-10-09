@@ -5,6 +5,7 @@ import {
 import { Drive, DiskConf } from "../Drive"; 
 import * as Path from "path"; 
 import Fat from "./Fat"; 
+import FSError from "./FSError"; 
 
 export interface FileSystemInfo {
 	root: Node; 
@@ -51,30 +52,20 @@ export class FileSystem implements DiskConf {
 
 		const theBlock = await this.drive.read(0); 
 
-		if (theBlock) {
-			const str = theBlock.toString(); 
-			const pos = str.lastIndexOf('}');
+		const str = theBlock.toString(); 
+		const pos = str.lastIndexOf('}');
 
-			try {
-				let temp: FileSystemInfo = JSON.parse(str.substring(0, pos + 1));
-				
-				this.fat = Fat.fromStr(temp.fat, { BLOCK_SIZE: this.BLOCK_SIZE, TOTAL: this.TOTAL }); 
-				this.root = temp.root; 
+		try {
+			let temp: FileSystemInfo = JSON.parse(str.substring(0, pos + 1));
+			
+			this.fat = Fat.fromStr(temp.fat, { BLOCK_SIZE: this.BLOCK_SIZE, TOTAL: this.TOTAL }); 
+			this.root = temp.root; 
 
-				return true; 
-			} catch (err) {
-				console.log('错误的零号区块, 需格式化'); 
-				console.log(err); 
-				process.exit(-1); 
-				return false; 
-			}
-		} else {
-			console.log('读取不到零号区块, 请检查网络或系统设置'); 
-			process.exit(-1); 
-			// await this.format(); 
-			// return this.mount(); 
-			return this.mount(times + 1); 
+			return true; 
+		} catch (err) {
+			throw FSError.ZERO_BLOCK_BAD_FORMAT; 
 		}
+		// return this.mount(times + 1); 
 	}
 
 	async format() {
@@ -180,7 +171,7 @@ export class FileSystem implements DiskConf {
 		}
 	}
 
-	ls(path: string) {
+	ls(path: string = '/') {
 		return resolve(this.root, path); 
 	}
 
