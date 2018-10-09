@@ -1,7 +1,6 @@
 import * as readline from "readline"; 
-import { Qiniu } from "./Qiniu"; 
-
-const qn = new Qiniu(); 
+import { FileSystem } from "./FileSystem"; 
+import QiniuDrive from "./QiniuDrive"; 
 
 const rl = readline.createInterface({
 	input: process.stdin,
@@ -10,24 +9,37 @@ const rl = readline.createInterface({
 });
 
 
+const qd = new QiniuDrive(); 
+
+qd.mount({
+	AK: 'l0FIyYhaZ7QiYOBVopQnPjHP3Jp11vNsdPXp-hRT', 
+	SK: 'bLtrNs-7qsck32uakAwCPT_N1mgbV6ihRObghXM5', 
+	DOMAIN: 'http://p4etc0mft.bkt.clouddn.com', 
+	BUCKET: 'des-store', 
+	BLOCK_SIZE: 256 * 1024,  // 256 KB
+	TOTAL: 100 * 1024 * 1024  //  50 MB
+}); 
+
 (async () => {
 	// 挂载 
-	await qn.mount({
-		AK: 'l0FIyYhaZ7QiYOBVopQnPjHP3Jp11vNsdPXp-hRT', 
-		SK: 'bLtrNs-7qsck32uakAwCPT_N1mgbV6ihRObghXM5', 
-		DOMAIN: 'http://p4etc0mft.bkt.clouddn.com', 
-		BUCKET: 'des-store', 
-		BLOCK_SIZE: 256 * 1024,  // 256 KB
-		TOTAL: 100 * 1024 * 1024  //  50 MB
-	}); 
-
+	const qn = new FileSystem(qd); 
+	await qn.mount(); 
+	
 	rl.prompt();
+	
 
 	rl.on('line', async (line: string) => {
-		const [cmd, ...args] = line.split(' ').map(e => e.trim()); 
+
+		const [cmd, ...args] = line.split(' ').filter(e => !!e).map(e => e.trim()); 
 
 		if (qn[cmd]) {
-			await qn[cmd](...args); 
+			try {
+				const result = await qn[cmd](...args); 
+				console.log(result); 
+			} catch (err) {
+				console.log(`Error When Exec '${ line }'`); 
+				console.error(err); 
+			}
 		} else {
 			console.log(`command '${ cmd }' not found.`); 
 		}
