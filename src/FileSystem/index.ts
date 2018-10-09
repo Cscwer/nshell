@@ -141,13 +141,14 @@ export class FileSystem implements DiskConf {
 
 		if (typeof data === 'string') data = Buffer.from(data); 
 
-		const blocks = this.fat.alloc(data.length); 
+		const blocks = this.fat.realloc(node.blocks, data.length); 
 		
 		const success = await this.drive.writes(blocks, data); 
 
 		if (success) {
 			node.blocks = blocks; 
 			node.size = data.length; 
+			node.update_at = Date.now(); 
 			this.save(); 
 			return true; 
 		} else {

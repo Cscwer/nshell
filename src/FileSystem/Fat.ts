@@ -19,7 +19,7 @@ export default class Fat implements DiskConf {
 		this.TOTAL = conf.TOTAL; 
 	}
 
-	alloc(size: number) {
+	alloc(size: number): number[] {
         const how_many_blocks = Math.ceil(size / this.BLOCK_SIZE); 
         const blocks: number[] = []; 
 
@@ -39,7 +39,15 @@ export default class Fat implements DiskConf {
         } else {
             return []; 
         }
-    }
+	}
+	
+	realloc(pre_blocks: number[], total_size: number): number[] {
+		const pre_size = this.BLOCK_SIZE * pre_blocks.length; 
+		const increment = total_size - pre_size; 
+		const inc_blocks = this.alloc(increment); 
+
+		return pre_blocks.concat(inc_blocks); 
+	}
 
     free(blocks: number[]) {
         blocks.forEach(i => this.records[i] = BlockStatus.FREE); 
