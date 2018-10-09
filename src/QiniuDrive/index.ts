@@ -1,7 +1,6 @@
-import { Drive, DiskConf } from "../Drive"; 
+import { Drive, DiskConf, DriveError } from "../Drive"; 
 import * as qiniu from "qiniu"; 
 import * as rp from "request-promise-native"; 
-import conf from "./config"; 
 import * as Url from "url"; 
 import { RespBody, RespInfo, QiniuConfig } from "./type"; 
 
@@ -76,7 +75,10 @@ export default class QiniuDrive implements Drive {
         const mac = new qiniu.auth.digest.Mac(this.AK, this.SK);
         const key = this.getKey(block_no); 
 
-        const bucketManager = new qiniu.rs.BucketManager(mac, conf);
+        const bucketManager = new qiniu.rs.BucketManager(mac, {
+			AK: this.AK, SK: this.SK,
+			DOMAIN: this.DOMAIN, BUCKET: this.BUCKET
+		});
         
         const deadline = Math.floor(Date.now() / 1000) + 3600; // 1小时过期
 
@@ -103,20 +105,18 @@ export default class QiniuDrive implements Drive {
         console.log('Write', block_no, data); 
 
         const { token, key } = this.uploadAuth(block_no); 
-        const fill = Buffer.alloc(conf.BLOCK_SIZE - data.length);
+        const fill = Buffer.alloc(this.BLOCK_SIZE - data.length);
         const buf = Buffer.concat([data, fill]);     
 
         return new Promise((resolve, reject) => {
             formUploader.put(token, key, buf, putExtra, (respErr, respBody: RespBody, respInfo: RespInfo<RespBody>) => {
                 if (respErr) {
-                    console.log(respErr); 
-                    resolve(false); 
+					throw DriveError.NET_ERROR(respErr); 
                 }
 
                 if (respInfo.statusCode === 200) {
                     resolve(true); 
                 } else {
-                    
                     resolve(false); 
                 }
             }); 
@@ -137,7 +137,7 @@ export default class QiniuDrive implements Drive {
 		}); 
 	}
 
-    read(block_no: number): Promise<Buffer | null> {
+    read(block_no: number): Promise<Buffer> {
         console.log('Read', block_no); 
 
 		const url = this.downloadAuth(block_no); 
@@ -146,7 +146,7 @@ export default class QiniuDrive implements Drive {
             encoding: null, 
             timeout: 5000
         }).catch(err => {
-            return null; 
+			throw DriveError.NET_ERROR(err);
         });
 	}
 	
